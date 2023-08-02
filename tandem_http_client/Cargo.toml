@@ -74,3 +74,6 @@ harness = false
 [[bench]]
 name = "circuits"
 harness = false
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
