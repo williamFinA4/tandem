@@ -321,7 +321,7 @@ pub async fn compute(
     let url = Url::parse(&url)?;
 
     let my_input = input.literal.as_bits(&program.ast);
-    dbg!(my_input);
+    println!(my_input);
 
     let expected_input_len = program
         .circuit
@@ -336,7 +336,7 @@ pub async fn compute(
     }
 
     let client = TandemClient::new(&url);
-    dbg!(client);
+    println!(client);
     let TypedCircuit { gates, fn_def, .. } = program.circuit;
     let session = client
         .new_session(
