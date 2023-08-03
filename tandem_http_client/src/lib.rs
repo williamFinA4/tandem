@@ -321,6 +321,7 @@ pub async fn compute(
     let url = Url::parse(&url)?;
 
     let my_input = input.literal.as_bits(&program.ast);
+    dbg!(my_input);
 
     let expected_input_len = program
         .circuit
@@ -335,6 +336,7 @@ pub async fn compute(
     }
 
     let client = TandemClient::new(&url);
+    dbg!(client);
     let TypedCircuit { gates, fn_def, .. } = program.circuit;
     let session = client
         .new_session(
@@ -344,9 +346,12 @@ pub async fn compute(
             plaintext_metadata,
         )
         .await?;
+    dbg!(session);
     let result = session.evaluate(gates, my_input).await?;
+    dbg!(result);
     let literal =
         deserialize_output(&program.ast, &fn_def, &result).map_err(GarbleCompileTimeError)?;
+    dbg!(literal);
     Ok(MpcData { literal })
 }
 
@@ -404,7 +409,9 @@ impl TandemClient {
             server_version: _server_version,
         } = send_new_session(self.url.clone(), &req).await?;
         let url = self.url.join(&engine_id)?;
-
+        dbg!(url);
+        dbg!(engine_id);
+        dbg!(request_headers);
         Ok(TandemSession {
             url,
             request_headers,
@@ -417,11 +424,13 @@ impl TandemSession {
         let mut context = MsgQueue::new();
         let mut evaluator =
             tandem::states::Evaluator::new(circuit, input, ChaCha20Rng::from_entropy())?;
-
+        dbg!(evaluator);
         let mut last_durably_received_offset: Option<MessageId> = None;
         let mut steps_remaining = evaluator.steps();
+        dbg!(steps_remaining);
         loop {
             let messages: Vec<(&Msg, MessageId)> = context.msgs_iter().collect();
+            dbg!(messages);
             let (upstream_msgs, server_commited_offset) =
                 self.dialog(last_durably_received_offset, &messages).await?;
             if messages.last().map(|v| v.1) != server_commited_offset {
@@ -431,7 +440,7 @@ impl TandemSession {
             if let Some(last_durably_received_offset) = server_commited_offset {
                 context.flush_queue(last_durably_received_offset);
             }
-
+            dbg!(upstream_msgs);
             for (msg, server_offset) in &upstream_msgs {
                 if *server_offset != last_durably_received_offset.map(|o| o + 1).unwrap_or(0) {
                     return Err(Error::MessageOffsetMismatch);
@@ -440,6 +449,8 @@ impl TandemSession {
                 if steps_remaining > 0 {
                     let (next_state, msg) = evaluator.run(msg)?;
                     evaluator = next_state;
+                    dbg!(evaluator);
+                    dbg!(msg);
                     steps_remaining -= 1;
                     context.send(msg);
                 } else {
@@ -467,7 +478,9 @@ impl TandemSession {
 
 async fn send_new_session(url: Url, session: &NewSession) -> Result<EngineCreationResult, Error> {
     let client = reqwest::Client::new();
-    let resp = client.post(url).json(session).send().await?;
+    let resp = client.post(url).json(ses
+        
+        sion).send().await?;
     let resp = resp_or_err(resp).await?;
     Ok(resp.json::<EngineCreationResult>().await?)
 }
